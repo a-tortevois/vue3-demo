@@ -1,0 +1,28 @@
+{
+  "root": true,
+  "env": {
+    "browser": false,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["eslint-config-standard"],
+  "overrides": [],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "never",
+        "exports": "never",
+        "functions": "never"
+      }
+    ],
+    "semi": ["error", "always"]
+  }
+}
