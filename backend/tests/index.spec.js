@@ -124,7 +124,7 @@ test('It sould return the last 50 employees (last page)', async () => {
 // Ordered by
 
 test('It sould return the first employee ordered by `fullName`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'fullName', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'fullName', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -138,7 +138,7 @@ test('It sould return the first employee ordered by `fullName`', async () => {
 });
 
 test('It sould return the last employee ordered by `fullName`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'fullName', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'fullName', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -147,12 +147,13 @@ test('It sould return the last employee ordered by `fullName`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
+    console.log(data[0]);
     assert(data[0].fullName === 'Ziemens Malena');
   }
 });
 
 test('It should return the first employee ordered by `birthDate`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'birthDate', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'birthDate', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -166,7 +167,7 @@ test('It should return the first employee ordered by `birthDate`', async () => {
 });
 
 test('It should return the last employee ordered by `birthDate`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'birthDate', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'birthDate', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -180,7 +181,7 @@ test('It should return the last employee ordered by `birthDate`', async () => {
 });
 
 test('It should return the first employee ordered by `startDate`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'startDate', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'startDate', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -194,7 +195,7 @@ test('It should return the first employee ordered by `startDate`', async () => {
 });
 
 test('It should return the last employee ordered by `startDate`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'startDate', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'startDate', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -208,7 +209,7 @@ test('It should return the last employee ordered by `startDate`', async () => {
 });
 
 test('It should return the first employee ordered by `office`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'office', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'office', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -222,7 +223,7 @@ test('It should return the first employee ordered by `office`', async () => {
 });
 
 test('It should return the last employee ordered by `office`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'office', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'office', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -236,7 +237,7 @@ test('It should return the last employee ordered by `office`', async () => {
 });
 
 test('It should return the first employee ordered by `jobTitle`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'jobTitle', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'jobTitle', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -250,7 +251,7 @@ test('It should return the first employee ordered by `jobTitle`', async () => {
 });
 
 test('It should return the last employee ordered by `jobTitle`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'jobTitle', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'jobTitle', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -264,7 +265,7 @@ test('It should return the last employee ordered by `jobTitle`', async () => {
 });
 
 test('It should return the first employee ordered by `salary`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'salary', sort: 'asc' });
+  const searchParams = querystring.encode({ orderedBy: 'salary', sortMode: 'asc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',
@@ -278,7 +279,7 @@ test('It should return the first employee ordered by `salary`', async () => {
 });
 
 test('It should return the last employee ordered by `salary`', async () => {
-  const searchParams = querystring.encode({ orderedBy: 'salary', sort: 'desc' });
+  const searchParams = querystring.encode({ orderedBy: 'salary', sortMode: 'desc' });
   const url = getUrlWithSearchParams(searchParams);
   const params = {
     method: 'GET',

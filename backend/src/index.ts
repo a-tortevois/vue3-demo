@@ -3,7 +3,7 @@ import path from 'node:path';
 import Fastify from 'fastify';
 import { RequestHeadersDefault } from 'fastify';
 import { fastifyStatic } from '@fastify/static';
-import { getEmployees, EmployeeQueryString, SortModes } from './employees.mjs';
+import { getEmployees, EmployeesQueryString, SortMode } from './employees.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.join(path.dirname(__filename), '../'); // ensure __dirname is the top directory level
@@ -19,22 +19,27 @@ fastify.get('/api/v1', async (_, res) => {
   return { result: 'API version 1' };
 });
 
-fastify.get<{ Querystring: EmployeeQueryString; Headers: RequestHeadersDefault }>('/api/v1/employees', async (req, res) => {
+fastify.get<{ Querystring: EmployeesQueryString; Headers: RequestHeadersDefault }>('/api/v1/employees', async (req, res) => {
   try {
-    // Parse & check query string params
     const orderedBy = req.query['orderedBy'] || 'fullName';
-    const sort = req.query['sort'] !== undefined && Object.keys(SortModes).includes(req.query['sort']) ? req.query['sort'] : 'asc';
+    const sortMode = req.query['sortMode'] !== undefined && Object.keys(SortMode).includes(req.query['sortMode']) ? req.query['sortMode'] : 'asc';
     const page = Number(req.query['page']) || 1;
     const limit = Number(req.query['limit']) || 20;
     const filters = req.query['filters'] !== undefined ? JSON.parse(req.query['filters']) : null;
-    const result = getEmployees({ orderedBy, sort, page, limit, filters });
+
+    const { count, data } = getEmployees(orderedBy, sortMode, page, limit, filters);
+
     res.type('application/json').code(200);
-    return result;
+    return { count, data };
   } catch (err) {
-    res.type('application/json').code(500);
-    return {
-      error: err,
-    };
+    if (err instanceof Error) {
+      res.type('application/json').code(500);
+      return {
+        error: err.message,
+      };
+    } else {
+      console.error(err);
+    }
   }
 });
 

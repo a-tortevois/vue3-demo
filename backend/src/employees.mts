@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-export const AllowedOrderedByFields = {
+export const AllowedOrderedBy = {
   fullName: 'fullName',
   birthDate: 'birthDate',
   startDate: 'startDate',
@@ -9,33 +9,33 @@ export const AllowedOrderedByFields = {
   salary: 'salary',
 } as const;
 
-export const SortModes = {
+export const SortMode = {
   asc: 'asc',
   desc: 'desc',
 } as const;
 
-export const AllowedFilteredByFields = {
+export const AllowedFilteredBy = {
   startDate: 'startDate',
   office: 'office',
   jobTitle: 'jobTitle',
 } as const;
 
-type AllowedOrderedByFieldsType = keyof typeof AllowedOrderedByFields;
+type AllowedOrderedByType = keyof typeof AllowedOrderedBy;
 
-type SortModesType = keyof typeof SortModes;
+type SortModeType = keyof typeof SortMode;
 
-type AllowedFilteredByFieldsType = keyof typeof AllowedFilteredByFields;
+type AllowedFilteredByType = keyof typeof AllowedFilteredBy;
 
-type EmployeeQueryStringParams = {
-  orderedBy: AllowedOrderedByFieldsType;
-  sort: SortModesType;
+type EmployeesQueryStringParams = {
+  orderedBy: AllowedOrderedByType;
+  sortMode: SortModeType;
   page: number;
   limit: number;
   filters: string;
 };
 
-export type EmployeeQueryString = {
-  [T in keyof EmployeeQueryStringParams]?: EmployeeQueryStringParams[T];
+export type EmployeesQueryString = {
+  [T in keyof EmployeesQueryStringParams]?: EmployeesQueryStringParams[T];
 };
 
 type EmployeeProps = {
@@ -79,14 +79,14 @@ class Employee {
 }
 
 type EmployeeFilterParams = {
-  key: AllowedFilteredByFieldsType;
+  key: AllowedFilteredByType;
   value: string | null;
   from: string | null;
   to: string | null;
 };
 
 class EmployeeFilter {
-  public readonly key: AllowedFilteredByFieldsType;
+  public readonly key: AllowedFilteredByType;
   public readonly value: string | null;
   public readonly from: string | null;
   public readonly to: string | null;
@@ -99,28 +99,14 @@ class EmployeeFilter {
   }
 }
 
-type EmployeesSearchParams = {
-  orderedBy: AllowedOrderedByFieldsType;
-  sort: SortModesType;
-  page: number;
-  limit: number;
-  filters: EmployeeFilterParams[];
-};
-
-/*
-type EmployeeFilterParamsAsNullable = {
-  [T in keyof EmployeeFilterParams]: EmployeeFilterParams[T] | null;
-};
-*/
-
 type CacheType = {
-  orderedBy: AllowedOrderedByFieldsType | null;
-  mode: SortModesType | null;
+  orderedBy: AllowedOrderedByType | null;
+  sortMode: SortModeType | null;
 };
 
 const cache: CacheType = {
   orderedBy: null,
-  mode: null,
+  sortMode: null,
 };
 
 const loadEmployees = async () => {
@@ -151,19 +137,19 @@ const loadEmployees = async () => {
   return employees;
 };
 
-const sortEmployees = (key: AllowedOrderedByFieldsType, mode: SortModesType) => {
-  if (key !== cache.orderedBy || mode !== cache.mode) {
+const sortEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType) => {
+  if (orderedBy !== cache.orderedBy || sortMode !== cache.sortMode) {
     employees.sort((a, b) => {
-      switch (key) {
+      switch (orderedBy) {
         case 'fullName':
         case 'office':
         case 'jobTitle': {
-          switch (mode) {
+          switch (sortMode) {
             case 'asc': {
-              return a[key].toLowerCase() < b[key].toLowerCase() ? -1 : 1;
+              return a[orderedBy].toLowerCase() < b[orderedBy].toLowerCase() ? -1 : 1;
             }
             case 'desc': {
-              return a[key].toLowerCase() < b[key].toLowerCase() ? 1 : -1;
+              return a[orderedBy].toLowerCase() < b[orderedBy].toLowerCase() ? 1 : -1;
             }
           }
           break;
@@ -171,21 +157,20 @@ const sortEmployees = (key: AllowedOrderedByFieldsType, mode: SortModesType) => 
         case 'birthDate':
         case 'startDate':
         case 'salary': {
-          switch (mode) {
+          switch (sortMode) {
             case 'asc': {
-              return a[key] - b[key];
+              return a[orderedBy] - b[orderedBy];
             }
             case 'desc': {
-              return b[key] - a[key];
+              return b[orderedBy] - a[orderedBy];
             }
           }
           break;
         }
       }
     });
-
-    cache.orderedBy = key;
-    cache.mode = mode;
+    cache.orderedBy = orderedBy;
+    cache.sortMode = sortMode;
   }
 };
 
@@ -210,18 +195,18 @@ const filterEmployees = (employees: Employee[], filterParams: EmployeeFilter) =>
   return employees;
 };
 
-export const getEmployees = (searchParams: EmployeesSearchParams) => {
-  sortEmployees(searchParams.orderedBy, searchParams.sort);
-  const pageStart = (searchParams.page - 1) * searchParams.limit;
-  const pageEnd = searchParams.page * searchParams.limit;
-  if (searchParams.filters === null) {
+export const getEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType, page: number, limit: number, filters: EmployeeFilterParams[] | null) => {
+  sortEmployees(orderedBy, sortMode);
+  const pageStart = (page - 1) * limit;
+  const pageEnd = page * limit;
+  if (filters === null) {
     return {
       count: employees.length,
       data: employees.slice(pageStart, pageEnd),
     };
   } else {
     let employeesFiltered = employees.slice();
-    searchParams.filters.map((filter) => {
+    filters.map((filter) => {
       employeesFiltered = filterEmployees(employeesFiltered, new EmployeeFilter(filter));
     });
     return {
