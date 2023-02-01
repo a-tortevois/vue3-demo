@@ -70,15 +70,15 @@ class Employee {
     this.fullName = `${props.lastName} ${props.firstName}`;
     this.birthDate = props.birthDate;
     this.startDate = props.startDate;
-    this.office = props.office;
     this.country = props.country;
-    this.jobTitle = props.jobTitle;
+    this.office = props.office;
     this.department = props.department;
+    this.jobTitle = props.jobTitle;
     this.salary = props.salary;
   }
 }
 
-type EmployeeFilterParams = {
+export type EmployeeFilterParams = {
   key: AllowedFilteredByType;
   value: string | null;
   from: string | null;
@@ -109,13 +109,30 @@ const cache: CacheType = {
   sortMode: null,
 };
 
-const loadEmployees = async () => {
+type EmployeeDatasType = {
+  employees: Array<Employee>;
+  countries: ReadonlyArray<string>;
+  offices: ReadonlyArray<string>;
+  departments: ReadonlyArray<string>;
+  jobTitles: ReadonlyArray<string>;
+};
+
+const loadEmployeeDatas = async (): Promise<EmployeeDatasType> => {
   const employees: Employee[] = [];
+  const countries = new Set<string>();
+  const offices = new Set<string>();
+  const departments = new Set<string>();
+  const jobTitles = new Set<string>();
+
   try {
     const filePath = new URL('../data/employees.db.txt', import.meta.url);
     const lines = (await readFile(filePath, { encoding: 'utf8' })).trim().split('\n');
     for (const line of lines) {
       const props = line.split(';');
+      countries.add(props[6]);
+      offices.add(props[7]);
+      departments.add(props[8]);
+      jobTitles.add(props[9]);
       const employee = new Employee({
         id: props[0],
         gender: props[1],
@@ -134,7 +151,14 @@ const loadEmployees = async () => {
   } catch (err) {
     console.error(err);
   }
-  return employees;
+
+  return {
+    employees,
+    countries: Array.from(countries),
+    offices: Array.from(offices),
+    departments: Array.from(departments),
+    jobTitles: Array.from(jobTitles),
+  };
 };
 
 const sortEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType) => {
@@ -175,14 +199,14 @@ const sortEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType) 
 };
 
 const filterEmployees = (employees: Employee[], filterParams: EmployeeFilter) => {
-  const key = filterParams.key;
-  const value = filterParams.value;
-  const from = filterParams.from;
-  const to = filterParams.to;
+  const key = String(filterParams.key);
+  const value = String(filterParams.value);
+  const from = String(filterParams.from);
+  const to = String(filterParams.to);
   switch (key) {
     case 'startDate': {
-      const fromTime = from !== null ? new Date(from).getTime() / 1_000 : 0;
-      const toTime = to !== null ? new Date(to).getTime() / 1_000 : Date.now();
+      const fromTime = new Date(from).getTime() / 1_000 || 0;
+      const toTime = new Date(to).getTime() / 1_000 || Date.now();
       return employees.filter((employee) => employee[key] > fromTime && employee[key] < toTime);
     }
     case 'office':
@@ -216,4 +240,8 @@ export const getEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortMode
   }
 };
 
-const employees = await loadEmployees();
+const { employees, ...employeesFilterProps } = await loadEmployeeDatas();
+
+export const getEmployeesFilterProps = () => {
+  return employeesFilterProps;
+};

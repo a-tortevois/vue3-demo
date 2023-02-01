@@ -2,13 +2,19 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import Fastify from 'fastify';
 import { RequestHeadersDefault } from 'fastify';
+import cors from '@fastify/cors';
 import { fastifyStatic } from '@fastify/static';
-import { getEmployees, EmployeesQueryString, SortMode } from './employees.mjs';
+import { EmployeesQueryString, AllowedOrderedBy, SortMode, EmployeeFilterParams, getEmployees, getEmployeesFilterProps } from './employees.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.join(path.dirname(__filename), '../'); // ensure __dirname is the top directory level
 
 const fastify = Fastify(/* {logger: true} */);
+
+fastify.register(cors, {
+  // options here
+});
+
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, 'public'),
   // prefix: '/public/', // optional, to specifically follow routes containing '/public/...'
@@ -21,14 +27,12 @@ fastify.get('/api/v1', async (_, res) => {
 
 fastify.get<{ Querystring: EmployeesQueryString; Headers: RequestHeadersDefault }>('/api/v1/employees', async (req, res) => {
   try {
-    const orderedBy = req.query['orderedBy'] || 'fullName';
+    const orderedBy = req.query['orderedBy'] !== undefined && Object.keys(AllowedOrderedBy).includes(req.query['orderedBy']) ? req.query['orderedBy'] : 'fullName';
     const sortMode = req.query['sortMode'] !== undefined && Object.keys(SortMode).includes(req.query['sortMode']) ? req.query['sortMode'] : 'asc';
     const page = Number(req.query['page']) || 1;
     const limit = Number(req.query['limit']) || 20;
-    const filters = req.query['filters'] !== undefined ? JSON.parse(req.query['filters']) : null;
-
+    const filters = req.query['filters'] !== undefined ? (JSON.parse(req.query['filters']) as EmployeeFilterParams[]) : null;
     const { count, data } = getEmployees(orderedBy, sortMode, page, limit, filters);
-
     res.type('application/json').code(200);
     return { count, data };
   } catch (err) {
@@ -41,6 +45,12 @@ fastify.get<{ Querystring: EmployeesQueryString; Headers: RequestHeadersDefault 
       console.error(err);
     }
   }
+});
+
+fastify.get<{ Querystring: EmployeesQueryString; Headers: RequestHeadersDefault }>('/api/v1/employeesFilterProps', async (_, res) => {
+  const employeesFilterProps = getEmployeesFilterProps();
+  res.type('application/json').code(200);
+  return { ...employeesFilterProps };
 });
 
 fastify.get('/', async (_, res) => {

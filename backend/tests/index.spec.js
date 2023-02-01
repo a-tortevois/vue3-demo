@@ -147,7 +147,6 @@ test('It sould return the last employee ordered by `fullName`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
-    console.log(data[0]);
     assert(data[0].fullName === 'Ziemens Malena');
   }
 });
