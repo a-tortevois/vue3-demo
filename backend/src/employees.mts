@@ -154,10 +154,10 @@ const loadEmployeeDatas = async (): Promise<EmployeeDatasType> => {
 
   return {
     employees,
-    countries: Array.from(countries),
-    offices: Array.from(offices),
-    departments: Array.from(departments),
-    jobTitles: Array.from(jobTitles),
+    countries: Array.from(countries).sort(),
+    offices: Array.from(offices).sort(),
+    departments: Array.from(departments).sort(),
+    jobTitles: Array.from(jobTitles).sort(),
   };
 };
 
