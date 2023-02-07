@@ -9,17 +9,18 @@ $ touch tsconfig.json
 ```json
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "es2020",
-    "rootDir": "./src",
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "es2022",
+    "rootDir": "src",
     "moduleResolution": "node",
-    "outDir": "./build",
+    "outDir": "build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.mts"],
   "exclude": ["node_modules"]
 }
 ```
@@ -30,9 +31,6 @@ Add to package.json:
 {
   "type": "module",
   "scripts": {
-    "build": "tsc -p ./tsconfig.json",
-    "prestart": "prettier --write src && npm run build",
-    "start": "node ./build/index.js",
     "dev": "node --watch --loader ts-node/esm ./src/index.ts"
   }
 }
@@ -62,6 +60,12 @@ eslint-config-standard-with-typescript@latest @typescript-eslint/eslint-plugin@^
 √ Would you like to install them now? · No / Yes
 √ Which package manager do you want to use? · npm
 Installing eslint-config-standard-with-typescript@latest, @typescript-eslint/eslint-plugin@^5.0.0, eslint@^8.0.1, eslint-plugin-import@^2.25.2, eslint-plugin-n@^15.0.0, eslint-plugin-promise@^6.0.0, typescript@_
+```
+
+Manual installation:
+
+```
+$ npm install @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser --save-dev
 ```
 
 ## Prettier configuration
@@ -100,7 +104,9 @@ $ touch .eslintrc.json
     "es2021": true,
     "node": true
   },
-  "extends": ["eslint-config-standard"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
   "overrides": [],
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -128,6 +134,11 @@ Add to package.json:
 ```json
 {
   "scripts": {
+    "prebuild": "npm run format:write && npm run lint:check",
+    "build": "tsc -p ./tsconfig.json",
+    "prestart": "npm run build",
+    "start": "node ./build/index.js",
+    "dev": "node --watch --loader ts-node/esm ./src/index.ts",
     "format:check": "prettier --check ./src",
     "format:write": "prettier --write ./src",
     "lint:check": "eslint --ext .ts ./src/**",

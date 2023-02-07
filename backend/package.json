@@ -9,7 +9,7 @@
     "build": "tsc -p ./tsconfig.json",
     "prestart": "npm run build",
     "start": "node ./build/index.js",
-    "dev": "node --trace-warnings --watch --loader ts-node/esm ./src/index.ts",
+    "dev": "node --watch --loader ts-node/esm ./src/index.ts",
     "tests": "node --trace-warnings --watch ./tests/index.spec.js",
     "format:check": "prettier --check ./src",
     "format:write": "prettier --write ./src",
