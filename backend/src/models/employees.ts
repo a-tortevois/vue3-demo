@@ -1,33 +1,9 @@
 import { readFile } from 'node:fs/promises';
 
-export const AllowedOrderedBy = {
-  fullName: 'fullName',
-  birthDate: 'birthDate',
-  startDate: 'startDate',
-  office: 'office',
-  jobTitle: 'jobTitle',
-  salary: 'salary',
-} as const;
-
-export const SortMode = {
-  asc: 'asc',
-  desc: 'desc',
-} as const;
-
-export const AllowedFilteredBy = {
-  startDate: 'startDate',
-  office: 'office',
-  jobTitle: 'jobTitle',
-} as const;
-
-type AllowedOrderedByType = keyof typeof AllowedOrderedBy;
-
-type SortModeType = keyof typeof SortMode;
-
-type AllowedFilteredByType = keyof typeof AllowedFilteredBy;
+import { OrderBy, SortMode, FilteredBy, OrderedByType, SortModeType, FilteredByType } from '../types/employees.js';
 
 type EmployeesQueryStringParams = {
-  orderedBy: AllowedOrderedByType;
+  orderedBy: OrderedByType;
   sortMode: SortModeType;
   page: number;
   limit: number;
@@ -79,14 +55,14 @@ class Employee {
 }
 
 export type EmployeeFilterParams = {
-  key: AllowedFilteredByType;
+  key: FilteredByType;
   value: string | null;
   from: string | null;
   to: string | null;
 };
 
 class EmployeeFilter {
-  public readonly key: AllowedFilteredByType;
+  public readonly key: FilteredByType;
   public readonly value: string | null;
   public readonly from: string | null;
   public readonly to: string | null;
@@ -100,7 +76,7 @@ class EmployeeFilter {
 }
 
 type CacheType = {
-  orderedBy: AllowedOrderedByType | null;
+  orderedBy: OrderedByType | null;
   sortMode: SortModeType | null;
 };
 
@@ -125,7 +101,7 @@ const loadEmployeeDatas = async (): Promise<EmployeeDatasType> => {
   const jobTitles = new Set<string>();
 
   try {
-    const filePath = new URL('../data/employees.db.txt', import.meta.url);
+    const filePath = new URL('../../data/employees.db.txt', import.meta.url);
     const lines = (await readFile(filePath, { encoding: 'utf8' })).trim().split('\n');
     for (const line of lines) {
       const props = line.split(';');
@@ -161,31 +137,31 @@ const loadEmployeeDatas = async (): Promise<EmployeeDatasType> => {
   };
 };
 
-const sortEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType) => {
+const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType) => {
   if (orderedBy !== cache.orderedBy || sortMode !== cache.sortMode) {
     employees.sort((a, b) => {
       switch (orderedBy) {
-        case 'fullName':
-        case 'office':
-        case 'jobTitle': {
+        case OrderBy.fullName:
+        case OrderBy.office:
+        case OrderBy.jobTitle: {
           switch (sortMode) {
-            case 'asc': {
+            case SortMode.asc: {
               return a[orderedBy].toLowerCase() < b[orderedBy].toLowerCase() ? -1 : 1;
             }
-            case 'desc': {
+            case SortMode.desc: {
               return a[orderedBy].toLowerCase() < b[orderedBy].toLowerCase() ? 1 : -1;
             }
           }
           break;
         }
-        case 'birthDate':
-        case 'startDate':
-        case 'salary': {
+        case OrderBy.birthDate:
+        case OrderBy.startDate:
+        case OrderBy.salary: {
           switch (sortMode) {
-            case 'asc': {
+            case SortMode.asc: {
               return a[orderedBy] - b[orderedBy];
             }
-            case 'desc': {
+            case SortMode.desc: {
               return b[orderedBy] - a[orderedBy];
             }
           }
@@ -204,22 +180,29 @@ const filterEmployees = (employees: Employee[], filterParams: EmployeeFilter) =>
   const from = String(filterParams.from);
   const to = String(filterParams.to);
   switch (key) {
-    case 'startDate': {
+    case FilteredBy.birthDate:
+    case FilteredBy.startDate: {
       const fromTime = new Date(from).getTime() / 1_000 || 0;
       const toTime = new Date(to).getTime() / 1_000 || Date.now();
       return employees.filter((employee) => employee[key] > fromTime && employee[key] < toTime);
     }
-    case 'office':
-    case 'jobTitle': {
+    case FilteredBy.office:
+    case FilteredBy.jobTitle: {
       if (value !== null) {
         return employees.filter((employee) => employee[key] === value);
       }
+      break;
+    }
+    case FilteredBy.salary: {
+      const fromSalary = Number(from) || 0;
+      const toSalary = Number(to) || Number.POSITIVE_INFINITY;
+      return employees.filter((employee) => employee[key] > fromSalary && employee[key] < toSalary);
     }
   }
   return employees;
 };
 
-export const getEmployees = (orderedBy: AllowedOrderedByType, sortMode: SortModeType, page: number, limit: number, filters: EmployeeFilterParams[] | null) => {
+export const getEmployees = (orderedBy: OrderedByType, sortMode: SortModeType, page: number, limit: number, filters: EmployeeFilterParams[] | null) => {
   sortEmployees(orderedBy, sortMode);
   const pageStart = (page - 1) * limit;
   const pageEnd = page * limit;

@@ -4,7 +4,9 @@ import Fastify from 'fastify';
 import { RequestHeadersDefault } from 'fastify';
 import cors from '@fastify/cors';
 import { fastifyStatic } from '@fastify/static';
-import { EmployeesQueryString, AllowedOrderedBy, SortMode, EmployeeFilterParams, getEmployees, getEmployeesFilterProps } from './employees.mjs';
+
+import { OrderBy, SortMode } from './types/employees.js';
+import { EmployeesQueryString, EmployeeFilterParams, getEmployees, getEmployeesFilterProps } from './models/employees.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.join(path.dirname(__filename), '../'); // ensure __dirname is the top directory level
@@ -27,7 +29,7 @@ fastify.get('/api/v1', async (_, res) => {
 
 fastify.get<{ Querystring: EmployeesQueryString; Headers: RequestHeadersDefault }>('/api/v1/employees', async (req, res) => {
   try {
-    const orderedBy = req.query['orderedBy'] !== undefined && Object.keys(AllowedOrderedBy).includes(req.query['orderedBy']) ? req.query['orderedBy'] : 'fullName';
+    const orderedBy = req.query['orderedBy'] !== undefined && Object.keys(OrderBy).includes(req.query['orderedBy']) ? req.query['orderedBy'] : 'fullName';
     const sortMode = req.query['sortMode'] !== undefined && Object.keys(SortMode).includes(req.query['sortMode']) ? req.query['sortMode'] : 'asc';
     const page = Number(req.query['page']) || 1;
     const limit = Number(req.query['limit']) || 20;
