@@ -1,0 +1,31 @@
+/* RESET */
+html {
+  font-size: 62.5%; /* 1rem = 10px */
+}
+
+body,
+div,
+form,
+fieldset,
+legend,
+input,
+textarea,
+p,
+th,
+td {
+  margin: 0;
+  padding: 0;
+}
+/* END RESET */
+
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 1.4rem;
+  line-height: 2rem;
+}
+
+h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.6rem;
+}

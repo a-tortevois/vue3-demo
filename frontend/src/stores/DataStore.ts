@@ -2,7 +2,14 @@ import queryString from "query-string";
 
 import { defineStore } from "pinia";
 
-import { OrderBy, SortMode, type OrderedByType, type SortModeType, SearchParams, type SearchParamsType } from "../types/employees.js";
+import {
+  OrderBy,
+  SortMode,
+  type OrderedByType,
+  type SortModeType,
+  SearchParams,
+  type SearchParamsType
+} from "../types/employees.js";
 
 const BASE_URL = "127.0.0.1:3000";
 
@@ -42,17 +49,19 @@ export const useData = defineStore("data", {
       offices: [],
     },
     searchParams: {
-      orderedBy: null,
-      sortMode: null,
-      page: null,
-      limit: null,
+      orderedBy: OrderBy.fullName,
+      sortMode: SortMode.asc,
+      page: 1,
+      limit: 15,
       filters: null,
     },
   }),
   actions: {
     async fetchDataFilter() {
       try {
-        const res = await window.fetch(`http://${BASE_URL}/api/v1/employeesFilterProps`);
+        const res = await window.fetch(
+          `http://${BASE_URL}/api/v1/employeesFilterProps`
+        );
         if (res.status === 200) {
           const filterProps = (await res.json()) as FilterProps;
           this.filterProps.jobTitles.push(...filterProps.jobTitles);
@@ -100,10 +109,12 @@ export const useData = defineStore("data", {
             }
           }
         }
-        const searchParamsString = queryString.stringify(this.searchParams, { skipNull: true });
-        if (searchParamsString.length > 0) {
-          url += `?${searchParamsString}`;
-        }
+      }
+      const searchParamsString = queryString.stringify(this.searchParams, {
+        skipNull: true,
+      });
+      if (searchParamsString.length > 0) {
+        url += `?${searchParamsString}`;
       }
       console.log("fetch", url);
       try {
@@ -124,6 +135,68 @@ export const useData = defineStore("data", {
     getMaxPages: (state): number => {
       const limit = state.searchParams.limit || 20;
       return Math.ceil(state.count / limit);
+    },
+
+    getFullNameClass: (state): Record<string, boolean> => {
+      const isOrderedByFullName =
+        state.searchParams.orderedBy === OrderBy.fullName;
+      return {
+        asc:
+          isOrderedByFullName && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedByFullName && state.searchParams.sortMode === SortMode.desc,
+      };
+    },
+
+    getJobTitleClass: (state): Record<string, boolean> => {
+      const isOrderedByJobTitle =
+        state.searchParams.orderedBy === OrderBy.jobTitle;
+      return {
+        asc:
+          isOrderedByJobTitle && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedByJobTitle && state.searchParams.sortMode === SortMode.desc,
+      };
+    },
+
+    getOfficeClass: (state): Record<string, boolean> => {
+      const isOrderedByOffice = state.searchParams.orderedBy === OrderBy.office;
+      return {
+        asc: isOrderedByOffice && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedByOffice && state.searchParams.sortMode === SortMode.desc,
+      };
+    },
+
+    getBirthDateClass: (state): Record<string, boolean> => {
+      const isOrderedByBirthDate =
+        state.searchParams.orderedBy === OrderBy.birthDate;
+      return {
+        asc:
+          isOrderedByBirthDate && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedByBirthDate && state.searchParams.sortMode === SortMode.desc,
+      };
+    },
+
+    getStartDateClass: (state): Record<string, boolean> => {
+      const isOrderedByStartDate =
+        state.searchParams.orderedBy === OrderBy.startDate;
+      return {
+        asc:
+          isOrderedByStartDate && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedByStartDate && state.searchParams.sortMode === SortMode.desc,
+      };
+    },
+
+    getSalaryClass: (state): Record<string, boolean> => {
+      const isOrderedBySalary = state.searchParams.orderedBy === OrderBy.salary;
+      return {
+        asc: isOrderedBySalary && state.searchParams.sortMode === SortMode.asc,
+        desc:
+          isOrderedBySalary && state.searchParams.sortMode === SortMode.desc,
+      };
     },
   },
 });

@@ -159,10 +159,10 @@ const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType) => {
         case OrderBy.salary: {
           switch (sortMode) {
             case SortMode.asc: {
-              return a[orderedBy] - b[orderedBy];
+              return b[orderedBy] - a[orderedBy];
             }
             case SortMode.desc: {
-              return b[orderedBy] - a[orderedBy];
+              return a[orderedBy] - b[orderedBy];
             }
           }
           break;
