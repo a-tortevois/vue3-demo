@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { useData } from "@/stores/DataStore";
-import ResultTableHeader from "./ResultTableHeader.vue";
-import ResultTableBody from "./ResultTableBody.vue";
-import ResultTableFooter from "./ResultTableFooter.vue";
-
-const dataStore = useData();
+import ResultTableHeader from './ResultTableHeader.vue';
+import ResultTableBody from './ResultTableBody.vue';
+import ResultTableFooter from './ResultTableFooter.vue';
 </script>
 
 <template>
@@ -94,12 +91,12 @@ th.sorting > i {
 }
 
 th.sorting::before {
-  content: "△";
+  content: '△';
   bottom: 50%;
 }
 
 th.sorting::after {
-  content: "▽";
+  content: '▽';
   top: 50%;
 }
 
@@ -120,11 +117,11 @@ th.desc {
 }
 
 th.asc::before {
-  content: "▲";
+  content: '▲';
 }
 
 th.desc::after {
-  content: "▼";
+  content: '▼';
 }
 
 tr:nth-of-type(odd) {
@@ -153,6 +150,10 @@ tbody > tr:hover {
 tbody > tr:not(:first-child) > td {
   /* border-top: 1px solid rgba(0, 0, 0, 0.15); */
   border-top: 1px solid rgba(58, 134, 255, 0.6);
+}
+
+td.center {
+  text-align: center;
 }
 
 *,
@@ -189,7 +190,7 @@ select::-ms-expand {
 
 .select {
   display: inline-grid;
-  grid-template-areas: "select";
+  grid-template-areas: 'select';
   align-items: center;
   position: relative;
   width: fit-content;
@@ -209,7 +210,7 @@ select::-ms-expand {
   grid-area: select;
 }
 .select::after {
-  content: "";
+  content: '';
   justify-self: end;
   width: 0.8em;
   height: 0.5em;

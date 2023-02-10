@@ -223,6 +223,26 @@ export const getEmployees = (orderedBy: OrderedByType, sortMode: SortModeType, p
   }
 };
 
+export const exportEmployees = (orderedBy: OrderedByType, sortMode: SortModeType, filters: EmployeeFilterParams[] | null) => {
+  sortEmployees(orderedBy, sortMode);
+  let _employees = employees.slice();
+  if (filters) {
+    filters.map((filter) => {
+      _employees = filterEmployees(_employees, new EmployeeFilter(filter));
+    });
+  }
+  return _employees.map((value) => {
+    return {
+      fullName: value.fullName,
+      jobTitle: value.jobTitle,
+      office: value.office,
+      birthDate: value.birthDate,
+      startData: value.startDate,
+      salary: value.salary,
+    };
+  });
+};
+
 const { employees, ...employeesFilterProps } = await loadEmployeeDatas();
 
 export const getEmployeesFilterProps = () => {

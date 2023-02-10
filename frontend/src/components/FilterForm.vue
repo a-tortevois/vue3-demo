@@ -40,7 +40,11 @@ const getFilters = (): Filters[] => {
     }
   }
   if (date_from.value != '' && date_to.value != '') {
-    filters.push({ key: FilteredBy.startDate, from: date_from.value, to: date_to.value });
+    filters.push({
+      key: FilteredBy.startDate,
+      from: date_from.value,
+      to: date_to.value,
+    });
   } else if (date_from.value != '') {
     filters.push({ key: FilteredBy.startDate, from: date_from.value });
   } else if (date_to.value != '') {
@@ -65,7 +69,7 @@ const handleSubmit = async (event: Event) => {
   event.preventDefault();
   const filters = getFilters();
   if (filters.length > 0) {
-    await dataStore.fetchData({ page: null, filters: JSON.stringify(filters) });
+    await dataStore.fetchData({ page: 1, filters: JSON.stringify(filters) });
   }
 };
 
@@ -79,7 +83,7 @@ const handleReset = async (event: Event) => {
   date_to.value = '';
   salary_selector.value = '';
   salary_value.value = '';
-  await dataStore.fetchData({ page: null, filters: null });
+  await dataStore.fetchData({ page: 1, filters: null });
 };
 </script>
 
@@ -92,7 +96,9 @@ const handleReset = async (event: Event) => {
         <div class="select">
           <select name="position" v-model="jobTitle">
             <option value="">Toutes</option>
-            <option v-for="jobTitle in jobTitles" key="{{ jobTitle }}">{{ jobTitle }}</option>
+            <option v-for="jobTitle in jobTitles" v-bind:key="jobTitle">
+              {{ jobTitle }}
+            </option>
           </select>
           <span class="focus"></span>
         </div>
@@ -102,7 +108,9 @@ const handleReset = async (event: Event) => {
         <div class="select">
           <select name="office" v-model="office">
             <option value="">Tous</option>
-            <option v-for="office in offices" key="{{ office }}">{{ office }}</option>
+            <option v-for="office in offices" v-bind:key="office">
+              {{ office }}
+            </option>
           </select>
           <span class="focus"></span>
         </div>
@@ -122,7 +130,7 @@ const handleReset = async (event: Event) => {
       </div>
       <div class="right">
         <label>Date d'entrée :</label>
-        <input type="date" name="date_from" v-model="date_from" /> to <input type="date" name="date_to" v-model="date_to" />
+        <input type="date" name="date_from" v-model="date_from" /> au <input type="date" name="date_to" v-model="date_to" />
       </div>
       <div class="left">
         <label>Salaire :</label>
@@ -137,8 +145,8 @@ const handleReset = async (event: Event) => {
         <input type="text" name="salary_value" v-model="salary_value" />
       </div>
       <div class="right">
-        <input type="reset" value="Reset" />
-        <input type="submit" value="Submit" />
+        <input type="reset" value="Réinitialiser" />
+        <input type="submit" value="Actualiser" />
       </div>
     </fieldset>
   </form>

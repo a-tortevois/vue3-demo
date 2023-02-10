@@ -1,17 +1,10 @@
-import queryString from "query-string";
+import queryString from 'query-string';
 
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
 
-import {
-  OrderBy,
-  SortMode,
-  type OrderedByType,
-  type SortModeType,
-  SearchParams,
-  type SearchParamsType
-} from "../types/employees.js";
+import { OrderBy, SortMode, type OrderedByType, type SortModeType, SearchParams, type SearchParamsType, type Employee } from '../types/employees.js';
 
-const BASE_URL = "127.0.0.1:3000";
+const BASE_URL = 'http://127.0.0.1:3001';
 
 type FilterProps = {
   countries: readonly string[];
@@ -22,16 +15,16 @@ type FilterProps = {
 
 interface DataState {
   count: number;
-  data: any;
+  data: Employee[];
   filterProps: {
     jobTitles: string[];
     offices: string[];
   };
   searchParams: {
-    orderedBy: OrderedByType | null;
-    sortMode: SortModeType | null;
-    page: number | null;
-    limit: number | null;
+    orderedBy: OrderedByType;
+    sortMode: SortModeType;
+    page: number;
+    limit: number;
     filters: string | null;
   };
 }
@@ -40,10 +33,10 @@ const getObjectKeys = <O extends object>(obj: O): (keyof O)[] => {
   return Object.keys(obj) as (keyof O)[];
 };
 
-export const useData = defineStore("data", {
+export const useData = defineStore('data', {
   state: (): DataState => ({
     count: 0,
-    data: {},
+    data: [],
     filterProps: {
       jobTitles: [],
       offices: [],
@@ -59,9 +52,7 @@ export const useData = defineStore("data", {
   actions: {
     async fetchDataFilter() {
       try {
-        const res = await window.fetch(
-          `http://${BASE_URL}/api/v1/employeesFilterProps`
-        );
+        const res = await window.fetch(`${BASE_URL}/api/v1/employeesFilterProps`);
         if (res.status === 200) {
           const filterProps = (await res.json()) as FilterProps;
           this.filterProps.jobTitles.push(...filterProps.jobTitles);
@@ -73,7 +64,7 @@ export const useData = defineStore("data", {
       }
     },
     async fetchData(searchParams: SearchParamsType | null = null) {
-      let url = `http://${BASE_URL}/api/v1/employees`;
+      let url = `${BASE_URL}/api/v1/employees`;
       if (searchParams != null) {
         for (const key of getObjectKeys(searchParams)) {
           // this.searchParams[key] = searchParams[key];
@@ -116,7 +107,7 @@ export const useData = defineStore("data", {
       if (searchParamsString.length > 0) {
         url += `?${searchParamsString}`;
       }
-      console.log("fetch", url);
+      console.log('fetch', url);
       try {
         const res = await window.fetch(url);
         if (res.status === 200) {
@@ -127,35 +118,61 @@ export const useData = defineStore("data", {
         }
       } catch (e) {
         this.count = 0;
-        this.data = {};
+        this.data = [];
+      }
+    },
+    async exportData() {
+      let url = `${BASE_URL}/api/v1/employees/export`;
+      const searchParamsString = queryString.stringify(this.searchParams, {
+        skipNull: true,
+      });
+      if (searchParamsString.length > 0) {
+        url += `?${searchParamsString}`;
+      }
+      console.log('fetch', url);
+      try {
+        const res = await window.fetch(url);
+        if (res.status === 200) {
+          const binaryObj = await res.blob();
+          const fileName = res.headers.get('content-disposition')?.split('=')[1];
+          if (fileName) {
+            const aElement = document.createElement('a');
+            aElement.setAttribute('download', fileName);
+            const href = URL.createObjectURL(binaryObj);
+            aElement.href = href;
+            // aElement.setAttribute('href', href);
+            aElement.setAttribute('target', '_blank');
+            aElement.click();
+            URL.revokeObjectURL(href);
+          }
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
   },
   getters: {
+    getCurrentPage: (state): number => {
+      return state.searchParams.page;
+    },
+
     getMaxPages: (state): number => {
-      const limit = state.searchParams.limit || 20;
-      return Math.ceil(state.count / limit);
+      return Math.ceil(state.count / state.searchParams.limit);
     },
 
     getFullNameClass: (state): Record<string, boolean> => {
-      const isOrderedByFullName =
-        state.searchParams.orderedBy === OrderBy.fullName;
+      const isOrderedByFullName = state.searchParams.orderedBy === OrderBy.fullName;
       return {
-        asc:
-          isOrderedByFullName && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedByFullName && state.searchParams.sortMode === SortMode.desc,
+        asc: isOrderedByFullName && state.searchParams.sortMode === SortMode.asc,
+        desc: isOrderedByFullName && state.searchParams.sortMode === SortMode.desc,
       };
     },
 
     getJobTitleClass: (state): Record<string, boolean> => {
-      const isOrderedByJobTitle =
-        state.searchParams.orderedBy === OrderBy.jobTitle;
+      const isOrderedByJobTitle = state.searchParams.orderedBy === OrderBy.jobTitle;
       return {
-        asc:
-          isOrderedByJobTitle && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedByJobTitle && state.searchParams.sortMode === SortMode.desc,
+        asc: isOrderedByJobTitle && state.searchParams.sortMode === SortMode.asc,
+        desc: isOrderedByJobTitle && state.searchParams.sortMode === SortMode.desc,
       };
     },
 
@@ -163,30 +180,23 @@ export const useData = defineStore("data", {
       const isOrderedByOffice = state.searchParams.orderedBy === OrderBy.office;
       return {
         asc: isOrderedByOffice && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedByOffice && state.searchParams.sortMode === SortMode.desc,
+        desc: isOrderedByOffice && state.searchParams.sortMode === SortMode.desc,
       };
     },
 
     getBirthDateClass: (state): Record<string, boolean> => {
-      const isOrderedByBirthDate =
-        state.searchParams.orderedBy === OrderBy.birthDate;
+      const isOrderedByBirthDate = state.searchParams.orderedBy === OrderBy.birthDate;
       return {
-        asc:
-          isOrderedByBirthDate && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedByBirthDate && state.searchParams.sortMode === SortMode.desc,
+        asc: isOrderedByBirthDate && state.searchParams.sortMode === SortMode.asc,
+        desc: isOrderedByBirthDate && state.searchParams.sortMode === SortMode.desc,
       };
     },
 
     getStartDateClass: (state): Record<string, boolean> => {
-      const isOrderedByStartDate =
-        state.searchParams.orderedBy === OrderBy.startDate;
+      const isOrderedByStartDate = state.searchParams.orderedBy === OrderBy.startDate;
       return {
-        asc:
-          isOrderedByStartDate && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedByStartDate && state.searchParams.sortMode === SortMode.desc,
+        asc: isOrderedByStartDate && state.searchParams.sortMode === SortMode.asc,
+        desc: isOrderedByStartDate && state.searchParams.sortMode === SortMode.desc,
       };
     },
 
@@ -194,8 +204,7 @@ export const useData = defineStore("data", {
       const isOrderedBySalary = state.searchParams.orderedBy === OrderBy.salary;
       return {
         asc: isOrderedBySalary && state.searchParams.sortMode === SortMode.asc,
-        desc:
-          isOrderedBySalary && state.searchParams.sortMode === SortMode.desc,
+        desc: isOrderedBySalary && state.searchParams.sortMode === SortMode.desc,
       };
     },
   },

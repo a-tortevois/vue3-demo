@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useData } from "@/stores/DataStore";
+import { useData } from '@/stores/DataStore';
 
-import { OrderBy, SortMode, type OrderedByType, type SortModeType } from "@/types/employees";
+import { OrderBy, SortMode, type OrderedByType, type SortModeType } from '@/types/employees';
 
 const dataStore = useData();
 
 async function handleClick(orderedBy: OrderedByType, sortMode: SortModeType) {
   console.log(orderedBy, sortMode);
-  await dataStore.fetchData({ orderedBy, sortMode });
+  await dataStore.fetchData({ orderedBy, sortMode, page: 1 });
 }
 </script>
 

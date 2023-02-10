@@ -1,30 +1,30 @@
 export const OrderBy = {
-  fullName: "fullName",
-  birthDate: "birthDate",
-  startDate: "startDate",
-  office: "office",
-  jobTitle: "jobTitle",
-  salary: "salary",
+  fullName: 'fullName',
+  birthDate: 'birthDate',
+  startDate: 'startDate',
+  office: 'office',
+  jobTitle: 'jobTitle',
+  salary: 'salary',
 } as const;
 
 export const SortMode = {
-  asc: "asc",
-  desc: "desc",
+  asc: 'asc',
+  desc: 'desc',
 } as const;
 
 export const FilteredBy = {
-  birthDate: "birthDate",
-  startDate: "startDate",
-  office: "office",
-  jobTitle: "jobTitle",
-  salary: "salary",
+  birthDate: 'birthDate',
+  startDate: 'startDate',
+  office: 'office',
+  jobTitle: 'jobTitle',
+  salary: 'salary',
 } as const;
 
 export const FilterParams = {
-  key: "key",
-  value: "value",
-  from: "from",
-  to: "to",
+  key: 'key',
+  value: 'value',
+  from: 'from',
+  to: 'to',
 } as const;
 
 export type OrderedByType = keyof typeof OrderBy;
@@ -37,6 +37,21 @@ export type FilterParamsType = keyof typeof FilterParams;
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------
 
+export type Employee = {
+  id: string;
+  gender: string;
+  fullName: string;
+  birthDate: number;
+  startDate: number;
+  country: string;
+  office: string;
+  department: string;
+  jobTitle: string;
+  salary: number;
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------
+
 export type Filters = {
   key: string;
   value?: string;
@@ -45,11 +60,11 @@ export type Filters = {
 };
 
 export const SearchParams = {
-  orderedBy: "orderedBy",
-  sortMode: "sortMode",
-  page: "page",
-  limit: "limit",
-  filters: "filters",
+  orderedBy: 'orderedBy',
+  sortMode: 'sortMode',
+  page: 'page',
+  limit: 'limit',
+  filters: 'filters',
 } as const;
 
 export type SearchParamsType = {
