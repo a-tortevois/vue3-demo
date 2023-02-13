@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import querystring from 'node:querystring';
 
-const BASE_URL = 'http://127.0.0.1:3000/api/v1/employees';
+const BASE_URL = 'http://127.0.0.1:3001/api/v1/employees';
 const DATASET_LENGTH = 1785;
 
 const getUrlWithSearchParams = (searchParams) => {
@@ -161,7 +161,7 @@ test('It should return the first employee ordered by `birthDate`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
-    assert(data[0].birthDate === new Date('1975-01-06').getTime() / 1_000);
+    assert(data[0].birthDate === new Date('1999-12-27').getTime() / 1_000);
   }
 });
 
@@ -175,7 +175,7 @@ test('It should return the last employee ordered by `birthDate`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
-    assert(data[0].birthDate === new Date('1999-12-27').getTime() / 1_000);
+    assert(data[0].birthDate === new Date('1975-01-06').getTime() / 1_000);
   }
 });
 
@@ -189,7 +189,7 @@ test('It should return the first employee ordered by `startDate`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
-    assert(data[0].startDate === new Date('1998-12-30').getTime() / 1_000);
+    assert(data[0].startDate === new Date('2023-01-29').getTime() / 1_000);
   }
 });
 
@@ -203,7 +203,7 @@ test('It should return the last employee ordered by `startDate`', async () => {
   const res = await fetch(url, params);
   if (res.status === 200) {
     const { data } = await res.json();
-    assert(data[0].startDate === new Date('2023-01-29').getTime() / 1_000);
+    assert(data[0].startDate === new Date('1998-12-30').getTime() / 1_000);
   }
 });
 
@@ -306,8 +306,8 @@ test('It should return the first 20 employees filtered by `startDate < 2010-01-0
     const { count, data } = await res.json();
     assert(count === 268);
     assert(data.length === limit);
-    assert(data[0].startDate === new Date('1998-12-30').getTime() / 1_000);
-    assert(data[data.length - 1].startDate === new Date('2001-07-30').getTime() / 1_000);
+    assert(data[0].startDate === new Date('2009-12-15').getTime() / 1_000);
+    assert(data[data.length - 1].startDate === new Date('2009-08-28').getTime() / 1_000);
   }
 });
 
@@ -323,8 +323,8 @@ test('It should return the next employees filtered by `startDate < 2010-01-01` (
   if (res.status === 200) {
     const { data } = await res.json();
     assert(data.length === limit);
-    assert(data[0].startDate === new Date('2001-08-23').getTime() / 1_000);
-    assert(data[data.length - 1].startDate === new Date('2003-03-09').getTime() / 1_000);
+    assert(data[0].startDate === new Date('2009-08-17').getTime() / 1_000);
+    assert(data[data.length - 1].startDate === new Date('2009-02-21').getTime() / 1_000);
   }
 });
 
@@ -342,7 +342,7 @@ test('It should return the last employees filtered by `startDate < 2010-01-01` (
     const { count, data } = await res.json();
     const remainder = count - (page - 1) * limit;
     assert(data.length === remainder);
-    assert(data[0].startDate === new Date('2009-11-02').getTime() / 1_000);
-    assert(data[data.length - 1].startDate === new Date('2009-12-15').getTime() / 1_000);
+    assert(data[0].startDate === new Date('2000-04-03').getTime() / 1_000);
+    assert(data[data.length - 1].startDate === new Date('1998-12-30').getTime() / 1_000);
   }
 });

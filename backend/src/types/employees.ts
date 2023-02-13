@@ -34,3 +34,22 @@ export type SortModeType = keyof typeof SortMode;
 export type FilteredByType = keyof typeof FilteredBy;
 
 export type FilterParamsType = keyof typeof FilterParams;
+
+type EmployeesQueryStringParams = {
+  orderedBy: OrderedByType;
+  sortMode: SortModeType;
+  page: number;
+  limit: number;
+  filters: string;
+};
+
+export type EmployeesQueryString = {
+  [T in keyof EmployeesQueryStringParams]?: EmployeesQueryStringParams[T];
+};
+
+export type EmployeeFilterParams = {
+  key: FilteredByType;
+  value: string | null;
+  from: string | null;
+  to: string | null;
+};

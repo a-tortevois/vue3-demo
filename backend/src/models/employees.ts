@@ -1,18 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { OrderBy, SortMode, FilteredBy, OrderedByType, SortModeType, FilteredByType } from '../types/employees.js';
-
-type EmployeesQueryStringParams = {
-  orderedBy: OrderedByType;
-  sortMode: SortModeType;
-  page: number;
-  limit: number;
-  filters: string;
-};
-
-export type EmployeesQueryString = {
-  [T in keyof EmployeesQueryStringParams]?: EmployeesQueryStringParams[T];
-};
+import { OrderBy, SortMode, FilteredBy, OrderedByType, SortModeType, FilteredByType, EmployeeFilterParams } from '../types/employees.js';
 
 type EmployeeProps = {
   id: string;
@@ -54,13 +42,6 @@ class Employee {
   }
 }
 
-export type EmployeeFilterParams = {
-  key: FilteredByType;
-  value: string | null;
-  from: string | null;
-  to: string | null;
-};
-
 class EmployeeFilter {
   public readonly key: FilteredByType;
   public readonly value: string | null;
@@ -78,11 +59,13 @@ class EmployeeFilter {
 type CacheType = {
   orderedBy: OrderedByType | null;
   sortMode: SortModeType | null;
+  sortedEmployees: Employee[] | null;
 };
 
 const cache: CacheType = {
   orderedBy: null,
   sortMode: null,
+  sortedEmployees: null,
 };
 
 type EmployeeDatasType = {
@@ -137,9 +120,10 @@ const loadEmployeeDatas = async (): Promise<EmployeeDatasType> => {
   };
 };
 
-const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType) => {
-  if (orderedBy !== cache.orderedBy || sortMode !== cache.sortMode) {
-    employees.sort((a, b) => {
+const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType): Employee[] => {
+  if (orderedBy !== cache.orderedBy || sortMode !== cache.sortMode || cache.sortedEmployees === null) {
+    const sortedEmployees = JSON.parse(JSON.stringify(employees)) as Employee[]; // Deep copy
+    sortedEmployees.sort((a, b) => {
       switch (orderedBy) {
         case OrderBy.fullName:
         case OrderBy.office:
@@ -155,8 +139,7 @@ const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType) => {
           break;
         }
         case OrderBy.birthDate:
-        case OrderBy.startDate:
-        case OrderBy.salary: {
+        case OrderBy.startDate: {
           switch (sortMode) {
             case SortMode.asc: {
               return b[orderedBy] - a[orderedBy];
@@ -167,10 +150,24 @@ const sortEmployees = (orderedBy: OrderedByType, sortMode: SortModeType) => {
           }
           break;
         }
+        case OrderBy.salary: {
+          switch (sortMode) {
+            case SortMode.asc: {
+              return a[orderedBy] - b[orderedBy];
+            }
+            case SortMode.desc: {
+              return b[orderedBy] - a[orderedBy];
+            }
+          }
+          break;
+        }
       }
     });
     cache.orderedBy = orderedBy;
     cache.sortMode = sortMode;
+    return sortedEmployees;
+  } else {
+    return cache.sortedEmployees;
   }
 };
 
@@ -203,29 +200,27 @@ const filterEmployees = (employees: Employee[], filterParams: EmployeeFilter) =>
 };
 
 export const getEmployees = (orderedBy: OrderedByType, sortMode: SortModeType, page: number, limit: number, filters: EmployeeFilterParams[] | null) => {
-  sortEmployees(orderedBy, sortMode);
+  let _employees = sortEmployees(orderedBy, sortMode);
   const pageStart = (page - 1) * limit;
   const pageEnd = page * limit;
   if (filters === null) {
     return {
-      count: employees.length,
-      data: employees.slice(pageStart, pageEnd),
+      count: _employees.length,
+      data: _employees.slice(pageStart, pageEnd),
     };
   } else {
-    let employeesFiltered = employees.slice();
     filters.map((filter) => {
-      employeesFiltered = filterEmployees(employeesFiltered, new EmployeeFilter(filter));
+      _employees = filterEmployees(_employees, new EmployeeFilter(filter));
     });
     return {
-      count: employeesFiltered.length,
-      data: employeesFiltered.slice(pageStart, pageEnd),
+      count: _employees.length,
+      data: _employees.slice(pageStart, pageEnd),
     };
   }
 };
 
 export const exportEmployees = (orderedBy: OrderedByType, sortMode: SortModeType, filters: EmployeeFilterParams[] | null) => {
-  sortEmployees(orderedBy, sortMode);
-  let _employees = employees.slice();
+  let _employees = sortEmployees(orderedBy, sortMode);
   if (filters) {
     filters.map((filter) => {
       _employees = filterEmployees(_employees, new EmployeeFilter(filter));

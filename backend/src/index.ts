@@ -6,8 +6,8 @@ import { RequestHeadersDefault } from 'fastify';
 import cors from '@fastify/cors';
 import { fastifyStatic } from '@fastify/static';
 
-import { OrderBy, SortMode } from './types/employees.js';
-import { EmployeesQueryString, EmployeeFilterParams, getEmployees, getEmployeesFilterProps, exportEmployees } from './models/employees.js';
+import { OrderBy, SortMode, EmployeesQueryString, EmployeeFilterParams } from './types/employees.js';
+import { getEmployees, getEmployeesFilterProps, exportEmployees } from './models/employees.js';
 
 import XLSX from 'xlsx';
 
