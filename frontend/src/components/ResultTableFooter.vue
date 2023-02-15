@@ -69,7 +69,7 @@ const handleExport = async () => {
         </select>
         <span class="focus"></span>
       </div>
-      Nombre total de lignes : <span> {{ dataStore.count }}</span>
+      Nombre total de lignes : <span id="rows-count"> {{ dataStore.count }}</span>
     </div>
     <div class="col-2">
       <button @click="handleExport">
@@ -77,13 +77,13 @@ const handleExport = async () => {
       </button>
     </div>
     <div class="col-3">
-      <a role="link" class="icon i-first" v-bind:class="{ disable: isFirstPageDisabled }" @click="handlePageClick(1, isFirstPageDisabled)">&nbsp;</a>
-      <a role="link" class="icon i-previous" v-bind:class="{ disable: isPreviousPageDisabled }" @click="handlePageClick(previousPage, isPreviousPageDisabled)">&nbsp;</a>
+      <a role="link" class="icon i-first" v-bind:class="{ disabled: isFirstPageDisabled }" @click="handlePageClick(1, isFirstPageDisabled)">&nbsp;</a>
+      <a role="link" class="icon i-previous" v-bind:class="{ disabled: isPreviousPageDisabled }" @click="handlePageClick(previousPage, isPreviousPageDisabled)">&nbsp;</a>
       Page
       <input type="text" name="page" min="1" v-bind:max="dataStore.getMaxPages" v-model="page" @blur="handlePageUpdate" @keyup.enter="handlePageUpdate" />
       / {{ dataStore.getMaxPages }}
-      <a role="link" class="icon i-next" v-bind:class="{ disable: isNextPageDisabled }" @click="handlePageClick(nextPage, isNextPageDisabled)">&nbsp;</a>
-      <a role="link" class="icon i-last" v-bind:class="{ disable: isLastPageDisabled }" @click="handlePageClick(dataStore.getMaxPages, isLastPageDisabled)">&nbsp;</a>
+      <a role="link" class="icon i-next" v-bind:class="{ disabled: isNextPageDisabled }" @click="handlePageClick(nextPage, isNextPageDisabled)">&nbsp;</a>
+      <a role="link" class="icon i-last" v-bind:class="{ disabled: isLastPageDisabled }" @click="handlePageClick(dataStore.getMaxPages, isLastPageDisabled)">&nbsp;</a>
     </div>
   </div>
 </template>
@@ -140,7 +140,7 @@ a {
   cursor: pointer;
 }
 
-a.disable {
+a.disabled {
   text-decoration: none;
   cursor: default;
   background-color: rgba(58, 134, 255, 0.15);
