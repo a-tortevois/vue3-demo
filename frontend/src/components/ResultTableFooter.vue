@@ -23,33 +23,32 @@ const previousPage = computed(() => page.value - 1);
 const nextPage = computed(() => page.value + 1);
 
 const handleSizeChange = async () => {
-  if (!isNaN(limit.value)) {
-    const maxPages = Math.ceil(dataStore.count / Number(limit.value));
-    if (page.value > maxPages) {
-      await dataStore.fetchData({ page: maxPages, limit: limit.value });
-      page.value = maxPages;
-    } else {
-      await dataStore.fetchData({ limit: limit.value });
-    }
+  if (isNaN(limit.value)) {
+    return;
+  }
+  const maxPages = Math.ceil(dataStore.count / Number(limit.value));
+  if (page.value > maxPages) {
+    await dataStore.fetchData({ page: maxPages, limit: limit.value });
+    page.value = maxPages;
+  } else {
+    await dataStore.fetchData({ limit: limit.value });
   }
 };
 
 const handlePageUpdate = async () => {
-  if (!isNaN(page.value) && page.value >= 1 && page.value <= dataStore.getMaxPages) {
-    await dataStore.fetchData({ page: page.value });
-  } else {
+  if (isNaN(page.value) || page.value < 1 || page.value > dataStore.getMaxPages) {
     page.value = currentPage.value;
+    return;
   }
+  await dataStore.fetchData({ page: page.value });
 };
 
 const handlePageClick = async (p: number, disabled: boolean) => {
-  if (disabled) {
+  if (disabled || isNaN(p) || p < 1 || p > dataStore.getMaxPages) {
     return;
   }
-  if (!isNaN(p) && p >= 1 && p <= dataStore.getMaxPages) {
-    await dataStore.fetchData({ page: p });
-    page.value = p;
-  }
+  await dataStore.fetchData({ page: p });
+  page.value = p;
 };
 
 const handleExport = async () => {
@@ -62,7 +61,7 @@ const handleExport = async () => {
     <div class="col-1">
       Lignes par pages :
       <div class="select">
-        <select name="limit" v-model="limit" @change="handleSizeChange">
+        <select name="limit" v-model="limit" @change="handleSizeChange()">
           <option value="15">15</option>
           <option value="25">25</option>
           <option value="50">50</option>
@@ -80,8 +79,8 @@ const handleExport = async () => {
       <a role="link" class="icon i-first" v-bind:class="{ disabled: isFirstPageDisabled }" @click="handlePageClick(1, isFirstPageDisabled)">&nbsp;</a>
       <a role="link" class="icon i-previous" v-bind:class="{ disabled: isPreviousPageDisabled }" @click="handlePageClick(previousPage, isPreviousPageDisabled)">&nbsp;</a>
       Page
-      <input type="text" name="page" min="1" v-bind:max="dataStore.getMaxPages" v-model="page" @blur="handlePageUpdate" @keyup.enter="handlePageUpdate" />
-      / {{ dataStore.getMaxPages }}
+      <input type="number" name="page" min="1" v-bind:max="dataStore.getMaxPages" v-model="page" @blur="handlePageUpdate()" @keyup.enter="handlePageUpdate()" />
+      / <span id="pages-count">{{ dataStore.getMaxPages }}</span>
       <a role="link" class="icon i-next" v-bind:class="{ disabled: isNextPageDisabled }" @click="handlePageClick(nextPage, isNextPageDisabled)">&nbsp;</a>
       <a role="link" class="icon i-last" v-bind:class="{ disabled: isLastPageDisabled }" @click="handlePageClick(dataStore.getMaxPages, isLastPageDisabled)">&nbsp;</a>
     </div>

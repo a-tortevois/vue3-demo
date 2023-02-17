@@ -209,3 +209,5 @@ export const useData = defineStore('data', {
     },
   },
 });
+
+export type DataStore = ReturnType<typeof useData>;

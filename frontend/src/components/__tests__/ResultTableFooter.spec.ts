@@ -1,40 +1,51 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
 import type { ComponentPublicInstance } from 'vue';
 import { createPinia, setActivePinia, type Pinia } from 'pinia';
+import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 
-import { useData } from '../../stores/DataStore.js';
+import { useData, type DataStore } from '../../stores/DataStore.js';
 
 import ResultTableFooter from '../ResultTableFooter.vue';
 
 type TestWrapper<T> = VueWrapper<ComponentPublicInstance & T>;
+type MockedWrapper = TestWrapper<
+  Partial<{
+    page: number;
+    handlePageClick: (/*args: unknown[]*/ page: number, isDisabled: boolean) => Promise<void>;
+    handlePageUpdate: () => void;
+  }>
+>;
 
-const handlePageClick = (/*...args: unknown[]*/ page: number, isDisabled: boolean) => {
+const mockHandlePageClick = (/*...args: unknown[]*/ page: number, isDisabled: boolean) => {
   // const [page, isDisabled] = args;
-  console.log('Mock handlePageClick with', { page, isDisabled });
+  // console.log('call mockHandlePageClick with', { page, isDisabled });
+  return Promise.resolve();
 };
 
-describe('ResultTableFooter is rendering properly the first page', () => {
+describe('Test if the ResultTableFooter renders the first page correctly.', () => {
   let pinia: Pinia;
-  let wrapper: TestWrapper<Partial<{ handlePageClick: (/*args: unknown[]*/ page: number, isDisabled: boolean) => void }>>; // handlePageClick: () => void
+  let wrapper: MockedWrapper;
+  let dataStore: DataStore;
+
+  // beforeAll(() => {});
 
   beforeEach(() => {
-    // Enable pinia
     pinia = createPinia();
     setActivePinia(pinia);
-
-    // Initialize dataStore
-    const dataStore = useData();
+    dataStore = useData();
     dataStore.searchParams.page = 1;
     dataStore.searchParams.limit = 15;
     dataStore.count = 125;
-
-    // Mount
     wrapper = mount(ResultTableFooter, {
       global: {
         plugins: [pinia],
       },
     });
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
   });
 
   it('should set the selector limit to 15', () => {
@@ -85,19 +96,27 @@ describe('ResultTableFooter is rendering properly the first page', () => {
     expect(lastPageLink.classes()).not.toContain('disabled');
   });
 
-  it('should simulate click on next', async () => {
+  it('should have 9 pages', () => {
+    const maxPages = wrapper.find('#pages-count');
+    expect(maxPages.exists()).toBe(true);
+    const maxPagesValue = (maxPages.element as HTMLSpanElement).textContent;
+    expect(maxPagesValue).matches(/[0-9]+/);
+    expect(Number(maxPagesValue)).toBe(9);
+  });
+
+  it('should emulate click on next with a spy on link', async () => {
     const nextPageLink = wrapper.find('.i-next');
     const spy = vi.spyOn(nextPageLink, 'trigger');
     spy.mockImplementation((event) => {
-      console.log('mock event', event);
-      return new Promise((resolve) => resolve());
+      // console.log('call mockLocal implementation of event', event);
+      return Promise.resolve();
     });
     await nextPageLink.trigger('click');
     expect(spy).toHaveBeenCalledOnce();
   });
 
-  it('should simulate click on next with a spy', async () => {
-    const mockHandlePageClick = vi.spyOn(wrapper.vm, 'handlePageClick').mockImplementation(handlePageClick);
+  it('should emulate click on next with a spy on handlePageClick', async () => {
+    const spy = vi.spyOn(wrapper.vm, 'handlePageClick').mockImplementation(mockHandlePageClick);
     /*
     mockHandlePageClick.mockImplementation((...args: unknown[]) => {
       console.log('Mock with', { args });
@@ -107,7 +126,107 @@ describe('ResultTableFooter is rendering properly the first page', () => {
     await nextPageLink.trigger('click');
     // const clickEvent = wrapper.emitted();
     // console.log('clickEvent', clickEvent.click[0]);
-    expect(mockHandlePageClick).toHaveBeenCalled();
-    expect(mockHandlePageClick).toHaveBeenCalledWith(2, false);
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith(2, false);
+  });
+
+  it('should input[name="page"] exists', async () => {
+    const pageInput = wrapper.find('input[name="page"]');
+    expect(pageInput.exists()).toBe(true);
+  });
+
+  it('should emulate input value change', async () => {
+    const pageInput = wrapper.find('input[name="page"]');
+    pageInput.setValue(2);
+    expect(wrapper.vm.page).toBe(2);
+  });
+
+  it('should emulate input blur', async () => {
+    const spy = vi.spyOn(wrapper.vm, 'handlePageUpdate').mockImplementation(vi.fn);
+    const pageInput = wrapper.find('input[name="page"]');
+    await pageInput.trigger('blur');
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it('should emulate input keyup.enter', async () => {
+    const spy = vi.spyOn(wrapper.vm, 'handlePageUpdate').mockImplementation(vi.fn);
+    const pageInput = wrapper.find('input[name="page"]');
+    await pageInput.trigger('keyup.enter');
+    expect(spy).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Test the handlePageClick function with dataStore.fetchData mocking', () => {
+  let pinia: TestingPinia;
+  let wrapper: MockedWrapper;
+  let dataStore: DataStore;
+
+  // beforeAll(() => {});
+
+  beforeEach(() => {
+    pinia = createTestingPinia({
+      createSpy: vi.fn,
+    });
+    setActivePinia(pinia);
+    dataStore = useData(pinia);
+    dataStore.searchParams.page = 1;
+    dataStore.searchParams.limit = 15;
+    dataStore.count = 125;
+    wrapper = mount(ResultTableFooter, {
+      global: {
+        plugins: [pinia],
+      },
+    });
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  it('cannot call fetchData when isDisabled = true', async () => {
+    const handlePageClickSpy = vi.spyOn(wrapper.vm, 'handlePageClick');
+    const firstPageLink = wrapper.find('.i-first');
+    // const spy = vi.spyOn(firstPageLink, 'trigger');
+    await firstPageLink.trigger('click');
+    // expect(spy).toHaveBeenCalledOnce();
+    // The handler is called even if it couldn't
+    expect(handlePageClickSpy).toHaveBeenCalledOnce();
+    expect(dataStore.fetchData).not.toHaveBeenCalled();
+  });
+
+  it('should emulate input blur, then check dataStore.fetchData parameters', async () => {
+    // const handlePageUpdateSpy = vi.spyOn(wrapper.vm, 'handlePageUpdate');
+    const pageInput = wrapper.find('input[name="page"]');
+    pageInput.setValue(2);
+    await pageInput.trigger('blur');
+    // expect(wrapper.vm.page).toBe(2);
+    // expect(handlePageUpdateSpy).toHaveBeenCalled();
+    expect(dataStore.fetchData).toHaveBeenCalledWith({ page: 2 });
+  });
+
+  it('should emulate input keyup.enter, then check dataStore.fetchData parameters', async () => {
+    // const handlePageUpdateSpy = vi.spyOn(wrapper.vm, 'handlePageUpdate');
+    const pageInput = wrapper.find('input[name="page"]');
+    pageInput.setValue(2);
+    await pageInput.trigger('keyup.enter');
+    // expect(wrapper.vm.page).toBe(2);
+    // expect(handlePageUpdateSpy).toHaveBeenCalled();
+    expect(dataStore.fetchData).toHaveBeenCalledWith({ page: 2 });
+  });
+
+  it('cannot call fetchData when handlePageClick is called with bad page parameters', async () => {
+    // const handlePageClickSpy = vi.spyOn(wrapper.vm, 'handlePageClick');
+    // const firstPageLink = wrapper.find('.i-previous');
+    // const spy = vi.spyOn(firstPageLink, 'trigger');
+    // await firstPageLink.trigger('click');
+
+    // The handler is called even if it couldn't
+    if (wrapper.vm.handlePageClick !== undefined) {
+      wrapper.vm.handlePageClick(-1, false);
+      wrapper.vm.handlePageClick(dataStore.getMaxPages + 1, false);
+      // expect(handlePageClickSpy).toHaveBeenCalledOnce();
+      // expect(handlePageClickSpy).toHaveBeenCalledWith(-1, false);
+      expect(dataStore.fetchData).not.toHaveBeenCalled();
+    }
   });
 });
